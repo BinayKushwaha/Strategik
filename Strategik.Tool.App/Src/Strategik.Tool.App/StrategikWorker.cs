@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Strategik.Tool.Enum;
+using Strategik.Tool.Helper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +19,7 @@ namespace Strategik.Tool.App
         }
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
+            CreateArchiveDirectory();
             await ExecuteAsync(cancellationToken);
         }
 
@@ -25,6 +28,21 @@ namespace Strategik.Tool.App
             while (!stoppingToken.IsCancellationRequested)
             {
                 fileWatcher.WatchFiles();
+            }
+        }
+        private void CreateArchiveDirectory()
+        {
+            var archivePath = System.Configuration.ConfigurationManager.AppSettings["ArchivePath"];
+            if (!string.IsNullOrEmpty(archivePath))
+            {
+                var successDirectory=archivePath+$"\\{Archive.Success.ToString()}";
+                var failDirectory=archivePath+$"\\{Archive.Fail.ToString()}";
+
+                var paths = new List<string>();
+                paths.Add(successDirectory);
+                paths.Add(failDirectory);
+
+                DirectoryHelper.CreateDirectories(paths);
             }
         }
     }

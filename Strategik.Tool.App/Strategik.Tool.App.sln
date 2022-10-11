@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Strategik.UnitTest", "Test\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Strategik.Tool.App", "Src\Strategik.Tool.App\Strategik.Tool.App.csproj", "{9A3F4077-1306-41B0-BDD9-E8B3631363AB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{E0532777-4952-4766-BD8B-054485F48136}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7E5FF63D-C3B9-4015-957F-9A51B857E759} = {A92798E3-4886-4EF2-95D3-EC231E42E803}
+		{7EBE6CEB-6713-49AF-A471-612D81DDAF98} = {E0532777-4952-4766-BD8B-054485F48136}
 		{9A3F4077-1306-41B0-BDD9-E8B3631363AB} = {A92798E3-4886-4EF2-95D3-EC231E42E803}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

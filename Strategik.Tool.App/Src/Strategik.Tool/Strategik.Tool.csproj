@@ -183,6 +183,8 @@
   <ItemGroup>
     <Compile Include="Authentication\AuthHandler.cs" />
     <Compile Include="Authentication\IAuthHandler.cs" />
+    <Compile Include="Enum\Archive.cs" />
+    <Compile Include="Helper\DirectoryHelper.cs" />
     <Compile Include="Models\TokenModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\Client\GraphClientService.cs" />

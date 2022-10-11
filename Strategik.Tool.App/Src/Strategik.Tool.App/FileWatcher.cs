@@ -1,4 +1,5 @@
-﻿using Strategik.Tool.Services.Drive;
+﻿using Strategik.Tool.Enum;
+using Strategik.Tool.Services.Drive;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,10 +12,17 @@ namespace Strategik.Tool.App
     public class FileWatcher
     {
         private string SourceDirectory { get; set; }
+        private string FileFilter { get; set; }
+        private string SuccessDirectory { get; set; }
+        private string FailDirectory { get; set; }
         private readonly IDriveService driveService;
         public FileWatcher(IDriveService driveService)
         {
             SourceDirectory = System.Configuration.ConfigurationManager.AppSettings["SourceDirectory"];
+            FileFilter = System.Configuration.ConfigurationManager.AppSettings["FileFilter"];
+            SuccessDirectory= System.Configuration.ConfigurationManager.AppSettings["ArchivePath"]+$"\\{Archive.Success.ToString()}";
+            FailDirectory= System.Configuration.ConfigurationManager.AppSettings["ArchivePath"]+$"\\{Archive.Fail.ToString()}";
+
             this.driveService = driveService;
         }
         public void WatchFiles()
@@ -36,7 +44,7 @@ namespace Strategik.Tool.App
                 watcher.Deleted += OnDeleted;
                 watcher.Error += OnError;
 
-                watcher.Filter = "*";
+                watcher.Filter = FileFilter;
                 watcher.IncludeSubdirectories = true;
                 watcher.EnableRaisingEvents = true;
 
@@ -56,10 +64,23 @@ namespace Strategik.Tool.App
 
         private async void OnCreated(object sender, FileSystemEventArgs e)
         {
+            string fileName = Path.GetFileName(e.FullPath);
+
             string value = $"Created: {e.FullPath}";
             Console.WriteLine(value);
-            SourceDirectory = SourceDirectory + "\\StrategikFile.txt";
-            await driveService.UploadFilesAsync(SourceDirectory);
+
+           var result= await driveService.UploadFilesAsync(e.FullPath);
+
+            if (result > 0)
+            {
+                string destinationPath = SuccessDirectory + "\\" + fileName;
+                File.Move(e.FullPath, destinationPath);
+            }
+            else
+            {
+                string destinationPath = FailDirectory + "\\" + fileName;
+                File.Move(e.FullPath, destinationPath);
+            }
         }
 
         private static void OnDeleted(object sender, FileSystemEventArgs e) =>

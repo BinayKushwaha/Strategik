@@ -18,8 +18,12 @@ namespace Strategik.Tool.Services.Drive
         {
             try
             {
-                using (var fileStream =new  FileStream(sourcePath,FileMode.Open,FileAccess.Read))
+                using (var fileStream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read))
                 {
+                    string fileName = Path.GetFileName(sourcePath);
+                    string destinationPath = System.Configuration.ConfigurationManager.AppSettings["DestinationDirectory"];
+                    string siteId = System.Configuration.ConfigurationManager.AppSettings["SiteID"];
+
                     // Use properties to specify the conflict behavior
                     // in this case, replace
                     var uploadProps = new DriveItemUploadableProperties
@@ -30,12 +34,12 @@ namespace Strategik.Tool.Services.Drive
                         }
                     };
 
-                    var graphClient =await graphClientService.GetClientAsync();
+                    var graphClient = await graphClientService.GetClientAsync();
 
                     // Create the upload session
                     // itemPath does not need to be a path to an existing item
-                    var uploadSession = await graphClient.Sites["strategikoffice365.sharepoint.com"].Drive.Root
-                        .ItemWithPath("/demofile")
+                    var uploadSession = await graphClient.Sites[siteId].Drive.Root
+                        .ItemWithPath($"{destinationPath}\\{fileName}")
                         .CreateUploadSession(uploadProps)
                         .Request()
                         .PostAsync();
@@ -47,7 +51,8 @@ namespace Strategik.Tool.Services.Drive
 
                     var totalLength = fileStream.Length;
                     // Create a callback that is invoked after each slice is uploaded
-                    IProgress<long> progress = new Progress<long>(prog => {
+                    IProgress<long> progress = new Progress<long>(prog =>
+                    {
                         Console.WriteLine($"Uploaded {prog} bytes of {totalLength} bytes");
                     });
 
