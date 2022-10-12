@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Strategik.Tool.Enum;
 using Strategik.Tool.Helper;
 using System;
@@ -13,9 +14,11 @@ namespace Strategik.Tool.App
     internal class StrategikWorker : BackgroundService
     {
         private readonly FileWatcher fileWatcher;
-        public StrategikWorker(FileWatcher fileWatcher)
+        private readonly ILogger<StrategikWorker> logger;
+        public StrategikWorker(FileWatcher fileWatcher, ILogger<StrategikWorker> logger)
         {
             this.fileWatcher = fileWatcher;
+            this.logger = logger;
         }
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
@@ -32,6 +35,8 @@ namespace Strategik.Tool.App
         }
         private void CreateArchiveDirectory()
         {
+            logger.LogInformation("Start creating Archive directory.");
+
             var archivePath = System.Configuration.ConfigurationManager.AppSettings["ArchivePath"];
             if (!string.IsNullOrEmpty(archivePath))
             {
@@ -43,6 +48,12 @@ namespace Strategik.Tool.App
                 paths.Add(failDirectory);
 
                 DirectoryHelper.CreateDirectories(paths);
+
+                logger.LogInformation("Completed creating Archive directory.");
+            }
+            else
+            {
+                logger.LogError("Failed creating Archive directory as the ArchivePath is null.");
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Strategik.Tool.Enum;
+﻿using Microsoft.Extensions.Logging;
+using Strategik.Tool.Enum;
 using Strategik.Tool.Services.Drive;
 using System;
 using System.Collections.Generic;
@@ -15,15 +16,18 @@ namespace Strategik.Tool.App
         private string FileFilter { get; set; }
         private string SuccessDirectory { get; set; }
         private string FailDirectory { get; set; }
+
+        private readonly ILogger<FileWatcher> logger;
         private readonly IDriveService driveService;
-        public FileWatcher(IDriveService driveService)
+        public FileWatcher(IDriveService driveService, ILogger<FileWatcher> logger)
         {
             SourceDirectory = System.Configuration.ConfigurationManager.AppSettings["SourceDirectory"];
             FileFilter = System.Configuration.ConfigurationManager.AppSettings["FileFilter"];
-            SuccessDirectory= System.Configuration.ConfigurationManager.AppSettings["ArchivePath"]+$"\\{Archive.Success.ToString()}";
-            FailDirectory= System.Configuration.ConfigurationManager.AppSettings["ArchivePath"]+$"\\{Archive.Fail.ToString()}";
+            SuccessDirectory = System.Configuration.ConfigurationManager.AppSettings["ArchivePath"] + $"\\{Archive.Success.ToString()}";
+            FailDirectory = System.Configuration.ConfigurationManager.AppSettings["ArchivePath"] + $"\\{Archive.Fail.ToString()}";
 
             this.driveService = driveService;
+            this.logger = logger;
         }
         public void WatchFiles()
         {
@@ -39,7 +43,6 @@ namespace Strategik.Tool.App
                                      | NotifyFilters.Security
                                      | NotifyFilters.Size;
 
-                watcher.Changed += OnChanged;
                 watcher.Created += OnCreated;
                 watcher.Deleted += OnDeleted;
                 watcher.Error += OnError;
@@ -53,38 +56,33 @@ namespace Strategik.Tool.App
                 Console.ReadLine();
             }
         }
-        private static void OnChanged(object sender, FileSystemEventArgs e)
-        {
-            if (e.ChangeType != WatcherChangeTypes.Changed)
-            {
-                return;
-            }
-            Console.WriteLine($"Changed: {e.FullPath}");
-        }
-
         private async void OnCreated(object sender, FileSystemEventArgs e)
         {
             string fileName = Path.GetFileName(e.FullPath);
 
             string value = $"Created: {e.FullPath}";
-            Console.WriteLine(value);
+            logger.LogInformation(value);
 
-           var result= await driveService.UploadFilesAsync(e.FullPath);
+            var result = await driveService.UploadFilesAsync(e.FullPath);
 
             if (result > 0)
             {
                 string destinationPath = SuccessDirectory + "\\" + fileName;
                 File.Move(e.FullPath, destinationPath);
+
+                logger.LogInformation($"File: {fileName} successfully uploaded and moved to directory: {destinationPath}");
             }
             else
             {
                 string destinationPath = FailDirectory + "\\" + fileName;
                 File.Move(e.FullPath, destinationPath);
+
+                logger.LogError($"File: {fileName} failed to upload and moved to directory: {destinationPath}");
             }
         }
 
-        private static void OnDeleted(object sender, FileSystemEventArgs e) =>
-            Console.WriteLine($"Deleted: {e.FullPath}");
+        private void OnDeleted(object sender, FileSystemEventArgs e) =>
+            logger.LogInformation($"Deleted: {e.FullPath}");
 
         private static void OnError(object sender, ErrorEventArgs e) =>
             PrintException(e.GetException());
